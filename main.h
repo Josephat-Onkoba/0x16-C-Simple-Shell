@@ -7,6 +7,8 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
+extern char **environ; /*Declare environ*/
+
 #define MAX_INPUT_SIZE 100
 
 void execute_commands(char *input);

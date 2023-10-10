@@ -31,7 +31,7 @@ void execute_commands(char *input)
 		argv[0] = command;
 		argv[1] = NULL;
 
-		if (execve(command, argv, NULL) == -1)
+		if (execve(command, argv, environ) == -1) /*Pass environ*/
 		{
 			perror("execve");
 			exit(EXIT_FAILURE);
