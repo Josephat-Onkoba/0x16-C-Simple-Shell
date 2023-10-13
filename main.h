@@ -12,6 +12,7 @@ extern char **environ; /*Declare environ*/
 #define MAX_INPUT_SIZE 100
 
 void execute_commands(char *input);
+void execute_command_with_args(char *command);
 int main(void);
 
 #endif /* MAIN_H */
