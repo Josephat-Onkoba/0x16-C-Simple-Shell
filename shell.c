@@ -10,7 +10,7 @@ int main(void)
 	size_t buf_size = 0;
 	char *buf = NULL;
 	char *token;
-	int status,i = 0;
+	int status, i = 0;
 	char **array;
 	pid_t child_pid;
 
@@ -24,17 +24,26 @@ int main(void)
 		while (token)
 		{
 			array[i] = token;
-			token = strtok(NULL,"\t\n");
+			token = strtok(NULL, "\t\n");
 			i++;
 		}
-			
-			array [i] = NULL;
-			child_pid = fork();
+
+		array[i] = NULL;
+		child_pid = fork();
+
+		if (child_pid == -1)
+		{
+			perror("fork");
+			exit(EXIT_FAILURE);
+		}
 
 		if (child_pid == 0)
 		{
 			if (execve(array[0], array, NULL) == -1)
+			{
 				perror("Error:");
+				exit(EXIT_FAILURE);
+			}
 		}
 		else
 		{
@@ -43,5 +52,6 @@ int main(void)
 		i = 0;
 		free(array);
 	}
-
+	free(buf);
+	return (0);
 }
