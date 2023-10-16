@@ -1,19 +1,47 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <string.h>
+
 int main(void)
 {
-	size_t n = 0;
+	size_t buf_size = 0;
 	char *buf = NULL;
-	char *argv[] = {"/bin/ls", "-l", "/usr/", NULL};
+	char *token;
+	int status,i = 0;
+	char **array;
+	pid_t child_pid;
 
-	printf("#cisfun$ ");
-	getline(&buf, &n, stdin);
+	while (1)
+	{
+		write(1, "#cisfun$ ", 9);
+		getline(&buf, &buf_size, stdin);
+		token = strtok(buf, "\t\n");
+		array = malloc(sizeof(char *) * 1024);
 
-    	if (execve(argv[0], argv, NULL) == -1)
-    	{
-       		 perror("Error:");
-   	 }
+		while (token)
+		{
+			array[i] = token;
+			token = strtok(NULL,"\t\n");
+			i++;
+		}
+			
+			array [i] = NULL;
+			child_pid = fork();
 
-	return (0);
+		if (child_pid == 0)
+		{
+			if (execve(array[0], array, NULL) == -1)
+				perror("Error:");
+		}
+		else
+		{
+			wait(&status);
+		}
+		i = 0;
+		free(array);
+	}
+
 }
