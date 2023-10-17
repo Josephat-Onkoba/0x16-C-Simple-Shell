@@ -1,28 +1,28 @@
 #include "main.h"
 
 /**
- * execute_commands - Execute the commands entered by the user.
+ * execute_cmds - Execute the cmds entered by the user.
  *
- * @input: The input string containing the command.
+ * @input: The input string containing the cmd.
  */
-void execute_commands(char *input)
+void execute_cmds(char *input)
 {
-	char *command = strtok(input, " ");
+	char *cmd = strtok(input, " ");
 	pid_t child_pid;
 
-	if (command == NULL)
+	if (cmd == NULL)
 	{
 		return; /* Empty line, do nothing */
 	}
 
-	/*Check if the user entered "exit"*/
-	if (_strcmp(command, "exit") == 0)
+	/* Check if the user entered "exit" */
+	if (_strcmp(cmd, "exit") == 0)
 	{
-		exit(EXIT_SUCCESS);/*Exit the shell*/
+		exit(EXIT_SUCCESS); /* Exit the shell */
 	}
-	else if (_strcmp(command, "env") == 0)
+	else if (_strcmp(cmd, "env") == 0)
 	{
-		print_environment();  /*Call the function to print environment*/
+		print_environment(); /* Call the function to print environment */
 		return;
 	}
 
@@ -37,7 +37,7 @@ void execute_commands(char *input)
 	if (child_pid == 0)
 	{
 		/* Child process */
-		execute_command_with_args(command);
+		execute_cmd_with_args(cmd);
 	}
 	else
 	{
@@ -46,95 +46,94 @@ void execute_commands(char *input)
 	}
 }
 
+
+
+
 /**
- * execute_command_with_args - Execute a command with its arguments.
+ * construct_argument_array - Construct an argument array for the cmd.
  *
- * @command: The command to execute.
+ * @cmd: The cmd to execute.
+ * @argv: Pointer to the argument array to be constructed.
+ *
+ * Return: the number of arguments in the array.
  */
-void execute_command_with_args(char *command)
+int construct_argument_array(char *cmd, char **argv)
 {
-	char **argv = (char **)malloc(sizeof(char *) * MAX_ARG_COUNT);
 	int arg_count = 0;
 	char *arg;
 
-	argv[arg_count++] = command;
-
+	argv[arg_count++] = cmd;
 	arg = strtok(NULL, " ");
+
 	while (arg != NULL && arg_count < (MAX_ARG_COUNT - 1))
 	{
 		argv[arg_count++] = arg;
 		arg = strtok(NULL, " ");
 	}
-
 	argv[arg_count] = NULL; /* Null-terminate the argument array */
+	return (arg_count);
+}
 
-	if (command_exists(command))
+/**
+ * execute_cmd - Execute a cmd with its arguments.
+ *
+ * @fullpath: The full path to the cmd.
+ * @argv: The argument array.
+ */
+void execute_cmd(char *fullpath, char **argv)
+{
+	if (execve(fullpath, argv, environ) == -1)
 	{
-		if (execve(command, argv, environ) == -1)
-		{
-			perror("execve");
-			exit(EXIT_FAILURE);
-		}
+		perror("execve");
+		exit(EXIT_FAILURE);
+	}
+}
+
+/**
+ * execute_cmd_with_args - Execute a cmd with its arguments.
+ *
+ * @cmd: The cmd to execute.
+ */
+void execute_cmd_with_args(char *cmd)
+{
+	char **argv = (char **)malloc(sizeof(char *) * MAX_ARG_COUNT);
+	char *pathcpy;
+	char fullpath[MAX_PATH_LENGTH];
+	int fullpath_len = 0;
+
+	construct_argument_array(cmd, argv);
+
+	if (_strchr(cmd, '/') != NULL)
+	{
+		execute_cmd(cmd, argv);
 	}
 	else
 	{
-		perror("Command not found");
-		exit(EXIT_FAILURE);
-	}
+		const char *path = _getenv("PATH");
 
-	free(argv);
-}
-
-/**
- * command_exists - Check if a command exists in the PATH.
- *
- * @command: The command to check for.
- *
- * Return: 1 if the command exists, 0 otherwise.
- */
-int command_exists(const char *command)
-{
-	/*Provide your own PATH environment variable*/
-	char *path_env = "/bin:/usr/bin";
-
-	char *path = strtok(path_env, ":");
-	char full_path[MAX_PATH_LENGTH];
-
-	while (path != NULL)
-	{
-		int path_length = _strlen(path);
-		int command_length = _strlen(command);
-
-		if (path_length + command_length + 2 < MAX_PATH_LENGTH)
+		if (path == NULL)
 		{
-			full_path[0] = '\0';
-			_strncat(full_path, path, path_length);
-			_strncat(full_path, "/", 1);
-			_strncat(full_path, command, command_length);
-
-			if (access(full_path, X_OK) == 0)
-			{
-				return (1); /*Command exists in this directory*/
-			}
+			perror("getenv");
+			exit(EXIT_FAILURE);
 		}
 
-		path = strtok(NULL, ":");
+		pathcpy = _strdup(path);
+		if (pathcpy == NULL)
+		{
+			perror("strdup");
+			exit(EXIT_FAILURE);
+		}
+
+		if (make_fullpath(cmd, pathcpy, fullpath, &fullpath_len) == 0)
+		{
+			execute_cmd(fullpath, argv);
+		}
+		else
+		{
+			perror("cmd not found");
+			exit(EXIT_FAILURE);
+		}
+		free(pathcpy);
 	}
-
-	return (0); /*Command not found in any directory in PATH*/
-}
-
-/**
- * print_environment - Print the current environment variables.
- */
-void print_environment(void)
-{
-	char **env = environ;
-
-	while (*env != NULL)
-	{
-		write(STDOUT_FILENO, *env, _strlen(*env));
-		write(STDOUT_FILENO, "\n", 1);
-		env++;
-	}
+	free(argv);
 }

@@ -33,7 +33,7 @@ int main(void)
 		}
 
 		input[line_length - 1] = '\0'; /* Remove newline character */
-		execute_commands(input);
+		execute_cmds(input);
 	}
 
 	free(input);

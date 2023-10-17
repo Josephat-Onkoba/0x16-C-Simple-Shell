@@ -62,3 +62,62 @@ int _strcmp(char *s1, char *s2)
 	}
 	return (*s1 - *s2);
 }
+
+/**
+ * _strchr - Locates the first occurrence of a character in a string.
+ *
+ * @s: The string to search within.
+ * @c: The character to search for.
+ *
+ * Return: A pointer to the first occurrence of @c in @s, or NULL if not found.
+ */
+const char *_strchr(const char *s, char c)
+{
+	while (*s != '\0')
+	{
+		if (*s == c)
+		{
+			return (s);
+		}
+		s++;
+	}
+
+	if (*s == c)
+	{
+		return (s);
+	}
+
+	return (NULL); /* Character not found */
+}
+
+/**
+ * _strncmp - Compare the first 'n' characters of two strings.
+ *
+ * @s1: The first string to compare.
+ * @s2: The second string to compare.
+ * @n: The maximum number of characters to compare.
+ *
+ * Return: An integer less than, equal to, or greater than zero if s1 is found,
+ * respectively, to be less than, to match, or be greater than s2.
+ */
+int _strncmp(const char *s1, const char *s2, size_t n)
+{
+	while (n > 0)
+	{
+		if (*s1 != *s2)
+		{
+			return (*s1 - *s2);
+		}
+
+		if (*s1 == '\0')
+		{
+			return (0);
+		}
+
+		s1++;
+		s2++;
+		n--;
+	}
+
+	return (0);
+}
